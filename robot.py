@@ -7,8 +7,8 @@ def Move(direction):
 
 #Reminder - make this intituive to the programs needs, eg. not hardcoded
 def RotateRobot():
-    R.motor_board.motors[1].power = -0.25
-    R.motor_board.motors[0].power = -0.75
+    R.motor_board.motors[1].power = 0.25
+    R.motor_board.motors[0].power = 0.75
 
 def AdjustBothClaws(adjustment):
     AdjustClaw(0, adjustment)
@@ -25,25 +25,38 @@ def MoveTowardObject(pin):
     if R.ruggeduino.pins[pin].analogue_read() < 2:
         Move(1)
 
-def SpotMarker():
+def SpotMarkers():
     return R.camera.see()
-    print(camera.see.Marker)
 
 def NoticeUserAboutMarkers(currentMarkers):
-    print("I can see", len(currentMarkers), "markers:")
+    print("I can view", len(currentMarkers), "markers:")
 
     for m in currentMarkers:
         print(" - Marker #{0} is {1} metres away".format(m.id, m.distance / 1000))
+
+def CollectWallMarkers(currentMarkers):
+    wallMarkers = []
+    for m in currentMarkers:
+        if(m != 99):
+            wallMarkers.append(m)
+    return wallMarkers
 
 def CheckMarkerCloseness(m):
     if m.distance / 1000 < 2:
         Move(1)
 
-markers = SpotMarker()
-NoticeUserAboutMarkers(markers)
-CheckMarkerCloseness(markers[0])
 
-print("B")
+RotateRobot()
+R.sleep(0.6)
+Move(0)
+Move(-1)
+R.sleep(1)
+Move(0)
+NoticeUserAboutMarkers(SpotMarkers())
+wallMarkers = CollectWallMarkers(SpotMarkers())
+NoticeUserAboutMarkers(wallMarkers)
+
+
 
 R.sleep(0.50)
 MoveSpeed=0.5
