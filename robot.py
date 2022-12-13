@@ -43,7 +43,7 @@ markers = SpotMarker()
 NoticeUserAboutMarkers(markers)
 CheckMarkerCloseness(markers[0])
 
-print("A")
+print("B")
 
 R.sleep(0.50)
 MoveSpeed=0.5
