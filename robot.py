@@ -36,7 +36,7 @@ def NoticeUserAboutMarkers(currentMarkers, homeMarkers):
 	CheckMarkerWithinOurArea(m, homeMarkers)
 
 def CheckMarkerWithinOurArea(marker, homeMarkers):
-    if(marker.id <= homeMarkers[0] or marker.id >= homeMarkers[1]):
+    if(marker.id <= homeMarkers[0]) or (marker.id >= homeMarkers[1]):
         print("This is within our box")
     else:
         print("This is not within our area")
