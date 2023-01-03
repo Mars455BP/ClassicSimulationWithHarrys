@@ -1,5 +1,9 @@
 from sr.robot3 import *
+
 R = Robot()
+
+distance = R.ruggeduino.pins[A5].analogue_read()
+print(f"Rear ultrasound distance: {distance} meters")
 
 def Move(direction):
     R.motor_board.motors[0].power = direction
@@ -34,8 +38,8 @@ def NoticeUserAboutMarkers(currentMarkers, homeMarkers):
     for m in currentMarkers:
         print(" - Marker #{0} is {1} metres away".format(m.id, m.distance / 1000))
         CheckMarkerWithinOurArea(m, homeMarkers)
-
-def CheckMarkerWithinOurArea(marker, homeMarkers[]):
+        
+def CheckMarkerWithinOurArea(marker, homeMarkers):
     if(marker.id <= homeMarkers[0]) or (marker.id >= homeMarkers[1]):
         print("This is within our box")
     else:
@@ -62,7 +66,7 @@ Move(0)
 homeMarkers = [3, 24]
 NoticeUserAboutMarkers(SpotMarkers(), homeMarkers)
 wallMarkers = CollectWallMarkers(SpotMarkers())
-NoticeUserAboutMarkers(wallMarkers)
+NoticeUserAboutMarkers(wallMarkers, homeMarkers)
 
 
 
