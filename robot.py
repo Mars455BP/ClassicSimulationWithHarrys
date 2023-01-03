@@ -33,9 +33,9 @@ def NoticeUserAboutMarkers(currentMarkers, homeMarkers):
 
     for m in currentMarkers:
         print(" - Marker #{0} is {1} metres away".format(m.id, m.distance / 1000))
-	CheckMarkerWithinOurArea(m, homeMarkers)
+        CheckMarkerWithinOurArea(m, homeMarkers)
 
-def CheckMarkerWithinOurArea(marker, homeMarkers):
+def CheckMarkerWithinOurArea(marker, homeMarkers[]):
     if(marker.id <= homeMarkers[0]) or (marker.id >= homeMarkers[1]):
         print("This is within our box")
     else:
