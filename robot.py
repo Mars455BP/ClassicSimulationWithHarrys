@@ -36,15 +36,15 @@ def NoticeUserAboutMarkers(currentMarkers, homeMarkers):
     print("I can view", len(currentMarkers), "markers:")
 
     for m in currentMarkers:
-        print(" - Marker #{0} is {1} metres away".format(m.id, m.distance / 1000))
+        print(" - Marker #{0} is {1} metres awayat with rotation x = {2}, z = {3}".format(m.id, m.distance / 1000, m.orientation.rot_x, m.orientation.rot_z))
         CheckMarkerWithinOurArea(m, homeMarkers)
-
+        
 def CheckMarkerWithinOurArea(marker, homeMarkers):
     if(marker.id <= homeMarkers[0]) or (marker.id >= homeMarkers[1]):
-	    if(marker.id == 99):
-	        print("This is a box")
-	    else:
-	        print("This is within our area")
+      if(marker.id == 99):
+        print("This is a box")
+      else:
+        print("This is within our area")
     else:
         print("This is not within our area")
 
@@ -59,12 +59,6 @@ def CheckMarkerCloseness(m):
     if m.distance / 1000 < 2:
         Move(1)
 
-RotateRobot()
-R.sleep(0.6)
-Move(0)
-Move(-1)
-R.sleep(1)
-Move(0)
 
 RotateRobot()
 R.sleep(0.6)
@@ -72,18 +66,15 @@ Move(0)
 Move(-1)
 R.sleep(1)
 Move(0)
-
-
 
 homeMarkers = [3, 24]
 NoticeUserAboutMarkers(SpotMarkers(), homeMarkers)
+MoveAboutTheBoard(homeMarkers)
 wallMarkers = CollectWallMarkers(SpotMarkers())
 NoticeUserAboutMarkers(wallMarkers, homeMarkers)
 
-
-
 R.sleep(0.50)
-MoveSpeed=0.5
+MoveSpeed = 0.5
 
 #R.sleep(0.6/abs(MoveSpeed))
 #Reminder - move speed is how fast the robot moves. negative is backwards.
