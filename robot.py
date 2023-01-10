@@ -36,7 +36,7 @@ def NoticeUserAboutMarkers(currentMarkers, homeMarkers):
     print("I can view", len(currentMarkers), "markers:")
 
     for m in currentMarkers:
-        print(" - Marker #{0} is {1} metres awayat with rotation x = {2}, z = {3}".format(m.id, m.distance / 1000, m.orientation.rot_x, m.orientation.rot_z))
+        print(" - Marker #{0} is {1} metres away with rotation x = {2}, z = {3}".format(m.id, m.distance / 1000, m.orientation.rot_x, m.orientation.rot_z))
         CheckMarkerWithinOurArea(m, homeMarkers)
         
 def CheckMarkerWithinOurArea(marker, homeMarkers):
