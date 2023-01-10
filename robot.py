@@ -2,9 +2,6 @@ from sr.robot3 import *
 
 R = Robot()
 
-distance = R.ruggeduino.pins[A5].analogue_read()
-print(f"Rear ultrasound distance: {distance} meters")
-
 def Move(direction):
     R.motor_board.motors[0].power = direction
     R.motor_board.motors[1].power = direction
@@ -25,10 +22,6 @@ def MoveAwayFromObject(pin):
     if R.ruggeduino.pins[A5].analogue_read() < 2:
         Move(1)
 
-def MoveTowardObject(pin):
-    if R.ruggeduino.pins[pin].analogue_read() < 2:
-        Move(1)
-
 def SpotMarkers():
     return R.camera.see()
 
@@ -36,7 +29,7 @@ def NoticeUserAboutMarkers(currentMarkers, homeMarkers):
     print("I can view", len(currentMarkers), "markers:")
 
     for m in currentMarkers:
-        print(" - Marker #{0} is {1} metres away with rotation x = {2}, z = {3}".format(m.id, m.distance / 1000, m.orientation.rot_x, m.orientation.rot_z))
+        print(" - Marker #{0} is {1} metres awayat with rotation x = {2}, z = {3}".format(m.id, m.distance / 1000, m.orientation.rot_x, m.orientation.rot_z))
         CheckMarkerWithinOurArea(m, homeMarkers)
         
 def CheckMarkerWithinOurArea(marker, homeMarkers):
@@ -60,6 +53,13 @@ def CheckMarkerCloseness(m):
         Move(1)
 
 
+def ReadAnalogue(pin):
+  return R.ruggeduino.pins[pin].analogue_read()
+
+distance = ReadAnalogue(A5)
+print(f"Rear ultrasound distance: {distance} meters")
+
+
 RotateRobot()
 R.sleep(0.6)
 Move(0)
@@ -69,7 +69,6 @@ Move(0)
 
 homeMarkers = [3, 24]
 NoticeUserAboutMarkers(SpotMarkers(), homeMarkers)
-MoveAboutTheBoard(homeMarkers)
 wallMarkers = CollectWallMarkers(SpotMarkers())
 NoticeUserAboutMarkers(wallMarkers, homeMarkers)
 
