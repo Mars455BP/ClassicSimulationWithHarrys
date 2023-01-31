@@ -65,19 +65,31 @@ def ReadAnalogue(pin):
 def MoveToBox(box):
     if CheckMarkerCloseness(box) < 2:
       Move(1)
-      
+
 def SpotOneMarker(index):
   if(index < len(R.camera.see())):
         return R.camera.see()[index]
+
+def SpotBox():
+  while SpotOneMarker(0) != 99:
+    RotateRobot()
+  Move(0)
   
 
 distance = ReadAnalogue(A5)
 print(f"Rear ultrasound distance: {distance} meters")
 
+Move(1)
+R.sleep(0.5)
+RotateRobot()
+R.sleep(0.5)
+Move(0)
 homeMarkers = [3, 24]
 NoticeUserAboutMarkers(SpotMarkers(), homeMarkers)
 wallMarkers = CollectWallMarkers(SpotMarkers())
 NoticeUserAboutMarkers(wallMarkers, homeMarkers)
+SpotBox()
+R.sleep(2)
 boxMarkers = CollectBoxMarkers(SpotMarkers())
 MoveToBox(boxMarkers[0])
 
