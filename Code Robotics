@@ -65,8 +65,10 @@ def ReadAnalogue(pin):
 def MoveToBox(box):
     if CheckMarkerCloseness(box) < 2:
       Move(1)
-    
-  
+      
+def SpotOneMarker(index):
+  if(index < len(R.camera.see())):
+        return R.camera.see()[index]
   
 
 distance = ReadAnalogue(A5)
