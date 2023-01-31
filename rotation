@@ -1,0 +1,62 @@
+from sr.robot3 import *
+R = Robot()
+
+def Move(direction):
+    R.motor_board.motors[0].power = direction
+    R.motor_board.motors[1].power = direction
+
+#Reminder - make this intituive to the programs needs, eg. not hardcoded
+def RotateRobot(directionr,power):
+    if(directionr):
+        R.motor_board.motors[1].power = +power
+        R.motor_board.motors[0].power = -power
+    else:
+        R.motor_board.motors[1].power = -power
+        R.motor_board.motors[0].power = +power
+
+
+def AdjustBothClaws(adjustment):
+    AdjustClaw(0, adjustment)
+    AdjustClaw(1, adjustment)
+
+def AdjustClaw(claw, adjustment):
+    R.servo_board.servos[claw].position = adjustment
+
+def MoveAwayFromObject(pin):
+    if R.ruggeduino.pins[A5].analogue_read() < 2:
+        Move(1)
+
+def MoveTowardObject(pin):
+    if R.ruggeduino.pins[pin].analogue_read() < 2:
+        Move(1)
+
+def SpotMarkers():
+    return R.camera.see()
+
+def NoticeUserAboutMarkers(currentMarkers):
+    print("I can see", len(currentMarkers), "markers:")
+
+    for m in currentMarkers:
+        print(" - Marker #{0} is {1} metres away".format(m.id, m.distance / 1000))
+
+def CheckMarkerCloseness(m):
+    if m.distance / 1000 < 2:
+        Move(1)
+
+def movetotarget(markers):
+    for (
+
+
+markers = SpotMarkers()
+NoticeUserAboutMarkers(markers)
+CheckMarkerCloseness(markers[0])
+
+rotaterobot(true,0.75)
+R.sleep(0.50)
+MoveSpeed=0.5
+
+#R.sleep(0.6/abs(MoveSpeed))
+#Reminder - move speed is how fast the robot moves. negative is backwards.
+#Reminder- set time divided by move speed allows for same distance
+
+
