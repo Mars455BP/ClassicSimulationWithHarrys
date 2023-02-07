@@ -48,32 +48,52 @@ def CollectWallMarkers(currentMarkers):
             wallMarkers.append(m)
     return wallMarkers
 
+def CollectBoxMarkers(currentMarkers):
+    boxMarkers = []
+    for m in currentMarkers:
+        if(m != 99):
+            boxMarkers.append(m)
+    return boxMarkers
+
 def CheckMarkerCloseness(m):
-    if m.distance / 1000 < 2:
-        Move(1)
+  return m.distance / 1000
 
 
 def ReadAnalogue(pin):
   return R.ruggeduino.pins[pin].analogue_read()
 
+def MoveToBox(box):
+    if CheckMarkerCloseness(box) < 2:
+      Move(1)
+
+def SpotOneMarker(index):
+  if(index < len(R.camera.see())):
+        return R.camera.see()[index]
+
+def SpotBox():
+  while SpotOneMarker(0) != 99:
+    RotateRobot()
+    Move(0)
+  
+  
+
 distance = ReadAnalogue(A5)
 print(f"Rear ultrasound distance: {distance} meters")
 
-
+Move(1)
+R.sleep(0.5)
 RotateRobot()
-R.sleep(0.6)
+R.sleep(2)
 Move(0)
-Move(-1)
-R.sleep(1)
-Move(0)
-
 homeMarkers = [3, 24]
 NoticeUserAboutMarkers(SpotMarkers(), homeMarkers)
 wallMarkers = CollectWallMarkers(SpotMarkers())
 NoticeUserAboutMarkers(wallMarkers, homeMarkers)
+SpotBox()
 
-R.sleep(0.50)
-MoveSpeed = 0.5
+
+boxMarkers = CollectBoxMarkers(SpotMarkers())
+MoveToBox(boxMarkers[0])
 
 #R.sleep(0.6/abs(MoveSpeed))
 #Reminder - move speed is how fast the robot moves. negative is backwards.
