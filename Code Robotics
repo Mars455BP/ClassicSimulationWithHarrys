@@ -71,9 +71,10 @@ def SpotOneMarker(index):
         return R.camera.see()[index]
 
 def SpotBox():
-  while SpotOneMarker(0) != 99:
+  while SpotOneMarker(0).id != 99:
     RotateRobot()
-  Move(0)
+    Move(0)
+  
   
 
 distance = ReadAnalogue(A5)
@@ -81,17 +82,21 @@ print(f"Rear ultrasound distance: {distance} meters")
 
 Move(1)
 R.sleep(0.5)
-RotateRobot()
-R.sleep(0.5)
-Move(0)
+#RotateRobot()
+#R.sleep(0.5)
+#Move(0)
+#R.sleep(0.5)
 homeMarkers = [3, 24]
 NoticeUserAboutMarkers(SpotMarkers(), homeMarkers)
 wallMarkers = CollectWallMarkers(SpotMarkers())
 NoticeUserAboutMarkers(wallMarkers, homeMarkers)
+
 SpotBox()
-R.sleep(2)
+
 boxMarkers = CollectBoxMarkers(SpotMarkers())
 MoveToBox(boxMarkers[0])
+
+
 
 #R.sleep(0.6/abs(MoveSpeed))
 #Reminder - move speed is how fast the robot moves. negative is backwards.
