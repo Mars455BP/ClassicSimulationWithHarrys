@@ -1,100 +1,120 @@
 from sr.robot3 import *
 
+global pins
 R = Robot()
 
-def Move(direction):
+##Moving Robots##
+#MoveRobot(direction)
+def MoveRobot(direction):
     R.motor_board.motors[0].power = direction
     R.motor_board.motors[1].power = direction
+#MoveRobotInGoodTime(movementInSeconds, direction)
+def MoveRobotInGoodTime(movementDuration, direction):
+    endMove = False
+    while endMove == False:
+        MoveRobot(direction)
+        WatchYourStepNow()
+        R.sleep(movementDuration)
+        endMove = True
+#WatchYourStepNow()
+def WatchYourStepNow():
+    closnessOfSensors = CheckClosenessOfAllSensors()
+    #if closnessOfSensors[pins[0]] <= 2 or closnessOfSensors[pins[1]] <= 2:
+    #    MoveRobot(0)
+    NoticeUserAboutClosenessToEachPin(closnessOfSensors)
 
-#Reminder - make this intituive to the programs needs, eg. not hardcoded
-def RotateRobot():
-    R.motor_board.motors[0].power = 0.75
-    R.motor_board.motors[1].power = 0.25
+##RUGGEDUINO##
+#CheckClosenessOfAllSensors()
+def CheckClosenessOfAllSensors():
+    pinsAndDistance = {}
+    for pin in pins:
+        pinsAndDistance[pin] = CheckClosenessViaSensor(pin)
+    return SortPinsbyCloseness(pinsAndDistance)
+#CheckClosenessViaSensor(pin)
+def CheckClosenessViaSensor(pin):
+    return R.ruggeduino.pins[pin].analogue_read()
+#SortPinsByCloseness(pinsAndDistance) ~ This is a dictionary parameter
+def SortPinsbyCloseness(pinsAndDistance):
+    return sorted(pinsAndDistance.values())
+#NoticeUserAboutClosenessToEachPin(pinsAndDistance) ~ This is a dictionary parameter
+def NoticeUserAboutClosenessToEachPin(pinsAndDistance):
+    for i in range(len(pins)):
+        print(f"Pin {str(pins[i])} closeness: {pinsAndDistance[i]}")
 
+##Moving servos##
+#AdjustBothClaws(adjustment)
 def AdjustBothClaws(adjustment):
     AdjustClaw(0, adjustment)
     AdjustClaw(1, adjustment)
-
+#AdjustBothClaws(adjustment1, adjustment2)
+def AdjustBothClaws(adjustment1, adjustment2):
+    AdjustClaw(0, adjustment1)
+    AdjustClaw(1, adjustment2)
+#AdjustClaw(claw, adjustment)
 def AdjustClaw(claw, adjustment):
     R.servo_board.servos[claw].position = adjustment
 
-def MoveAwayFromObject(pin):
-    if R.ruggeduino.pins[A5].analogue_read() < 2:
-        Move(1)
-
-def SpotMarkers():
+##Camera Related##
+#GetTheCameraItems() ~ Returns the whole marker object
+def GetTheCameraItems():
     return R.camera.see()
+#GetTheMarkerIDS() ~ Only returns marker ids
+def GetTheMarkerIDS():
+    return R.camera.see_ids()
+#RemarkAboutSeenMarkers(items) ~ This provides interface between the user and the debug console.
+def RemarkAboutSeenMarkers(items):
+    print(f"I can see {len(items)} markers.")
+    for i in items:
+        print(f"{i.id} is {i.distance/1000} away. It is {i.size/100}m large")
+        print(i.cartesian.x, i.cartesian.y, i.cartesian.z)
+        #print(i.pixel_centre)
+        #print(i.pixel_corners)
+#FilterSeenItemsByID(idFilter, items)
+def FilterSeenItemsByID(idFilter, items):
+    newItems = []
+    for i in items:
+        if i.id == idFilter:
+            newItems.append(i)
+    return newItems
+#FilterSeenItemsBySize(idFilter, items)
+def FilterSeenItemsBySize(sizeFilter, items):# ~ Use size in metres
+    newItems = []
+    for i in items:
+        if i.size/1000 == sizeFilter:
+            newItems.append(i)
+    return newItems
+#FilterSeenItemsByDistance(distanceFilter, items) ~ IMPORTANT distance is measured in milimeters. To get it in metres, divide by 1000
+def FilterSeenItemsByDistance(maxDistance, items):
+    newItems = []
+    for i in items:
+        if i.distance / 1000 <= maxDistance:
+            newItems.append(i)
+    return newItems
 
-def NoticeUserAboutMarkers(currentMarkers, homeMarkers):
-    print("I can view", len(currentMarkers), "markers:")
+##Competition Commands##
+#MoveAboutTheArena()
+def MoveAboutTheArena():
+    items = []
+    foundBox = False
+    while foundBox == False:
+        if len(items) == 0:
+            MoveRobotInGoodTime(0.5, 1)
+            UpdateSeenMarkers()
+        else:
+            print("FOUND!")
+        R.sleep(0.000001)
+#UpdateSeenMarkers()
+def UpdateSeenMarkers():
+    items = CompetitionFilter()
+    RemarkAboutSeenMarkers(items)
+#CompetitionFilter()
+def CompetitionFilter():
+    items = GetTheCameraItems()
+    items = FilterSeenItemsByID(99, items)
+    #items = FilterSeenItemsBySize(0.061, items)
+    #items = FilterSeenItemsByDistance(5, items)
+    return items
 
-    for m in currentMarkers:
-        print(" - Marker #{0} is {1} metres awayat with rotation x = {2}, z = {3}".format(m.id, m.distance / 1000, m.orientation.rot_x, m.orientation.rot_z))
-        CheckMarkerWithinOurArea(m, homeMarkers)
-        
-def CheckMarkerWithinOurArea(marker, homeMarkers):
-    if(marker.id <= homeMarkers[0]) or (marker.id >= homeMarkers[1]):
-      if(marker.id == 99):
-        print("This is a box")
-      else:
-        print("This is within our area")
-    else:
-        print("This is not within our area")
-
-def CollectWallMarkers(currentMarkers):
-    wallMarkers = []
-    for m in currentMarkers:
-        if(m != 99):
-            wallMarkers.append(m)
-    return wallMarkers
-
-def CollectBoxMarkers(currentMarkers):
-    boxMarkers = []
-    for m in currentMarkers:
-        if(m != 99):
-            boxMarkers.append(m)
-    return boxMarkers
-
-def CheckMarkerCloseness(m):
-  return m.distance / 1000
-
-
-def ReadAnalogue(pin):
-  return R.ruggeduino.pins[pin].analogue_read()
-
-def MoveToBox(box):
-    if CheckMarkerCloseness(box) < 2:
-      Move(1)
-
-def SpotOneMarker(index):
-  if(index < len(R.camera.see())):
-        return R.camera.see()[index]
-
-def SpotBox():
-  while SpotOneMarker(0) != 99:
-    RotateRobot()
-    Move(0)
-  
-  
-
-distance = ReadAnalogue(A5)
-print(f"Rear ultrasound distance: {distance} meters")
-
-Move(1)
-R.sleep(0.5)
-RotateRobot()
-R.sleep(2)
-Move(0)
-homeMarkers = [3, 24]
-NoticeUserAboutMarkers(SpotMarkers(), homeMarkers)
-wallMarkers = CollectWallMarkers(SpotMarkers())
-NoticeUserAboutMarkers(wallMarkers, homeMarkers)
-SpotBox()
-
-
-boxMarkers = CollectBoxMarkers(SpotMarkers())
-MoveToBox(boxMarkers[0])
-
-#R.sleep(0.6/abs(MoveSpeed))
-#Reminder - move speed is how fast the robot moves. negative is backwards.
-#Reminder- set time divided by move speed allows for same distance
+##Raw code ~ No subs, put them elsewhere
+pins = [A0, A1, A2, A3, A4, A5]
+MoveAboutTheArena()
