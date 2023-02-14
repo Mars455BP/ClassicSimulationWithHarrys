@@ -6,8 +6,20 @@ R = Robot()
 ##Moving Robots##
 #MoveRobot(direction)
 def MoveRobot(direction):
-    R.motor_board.motors[0].power = direction
-    R.motor_board.motors[1].power = direction
+    PowerOneMotor(0, direction)
+    PowerOneMotor(1, direction)
+#PivotRobot(motorThatPivots, pivotDirection, otherDirection) ~ For pivoting, motor_board[1] with power pivots anti-clockwise and vice versa
+def PivotRobot(motorThatPivots, pivotDirection, otherDirection, duration):
+    PowerOneMotor(motorThatPivots, pivotDirection)
+    if motorThatPivots == 1:
+        PowerOneMotor(0, otherDirection)
+    else:
+        PowerOneMotor(1, otherDirection)
+    R.sleep(duration)
+    MoveRobot(0)
+#PowerOneMotor(motor, direction)
+def PowerOneMotor(motor, direction):
+    R.motor_board.motors[motor].power = direction
 #MoveRobotInGoodTime(movementInSeconds, direction)
 def MoveRobotInGoodTime(movementDuration, direction):
     endMove = False
@@ -117,4 +129,6 @@ def CompetitionFilter():
 
 ##Raw code ~ No subs, put them elsewhere
 pins = [A0, A1, A2, A3, A4, A5]
-MoveAboutTheArena()
+PivotRobot(0, 0.5, 0, 3)
+PivotRobot(1, 0.5, 0, 3)
+##MoveAboutTheArena()
