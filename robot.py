@@ -1,6 +1,6 @@
 from sr.robot3 import *
 
-global pins
+global pins, homeMarkers, allWallMarkers
 R = Robot()
 
 ##Moving Robots##
@@ -27,6 +27,7 @@ def MoveRobotInGoodTime(movementDuration, direction):
         MoveRobot(direction)
         WatchYourStepNow()
         R.sleep(movementDuration)
+        MoveRobot(0)
         endMove = True
 #WatchYourStepNow()
 def WatchYourStepNow():
@@ -77,10 +78,16 @@ def GetTheMarkerIDS():
 def RemarkAboutSeenMarkers(items):
     print(f"I can see {len(items)} markers.")
     for i in items:
-        print(f"{i.id} is {i.distance/1000} away. It is {i.size/100}m large")
-        print(i.cartesian.x, i.cartesian.y, i.cartesian.z)
-        #print(i.pixel_centre)
-        #print(i.pixel_corners)
+        print(f"{i.id} is {i.distance/1000} away. It is {i.size/100}m large.")
+#SortMarkersByCloseness(markersAndDistance)
+def SortMarkersByCloseness(markersAndDistance):
+    return sorted(markersAndDistance.values())
+#GetMarkerAndDistance()
+def GetMarkerAndDistance(inMarkers):
+    markersAndDistance = {}
+    for i in inMarkers:
+        markersAndDistance[i] = i.distance / 1000
+    return markersAndDistance
 #FilterSeenItemsByID(idFilter, items)
 def FilterSeenItemsByID(idFilter, items):
     newItems = []
@@ -88,11 +95,18 @@ def FilterSeenItemsByID(idFilter, items):
         if i.id == idFilter:
             newItems.append(i)
     return newItems
+#FilterSeenItemsByIDRange(range, items)
+def FilterSeenItemsByIDRange(rangeOfMarkers, items):
+    newItems = []
+    for i in items:
+        if i.id >= rangeOfMarkers[0] and i.id <= rangeOfMarkers[1]:
+            newItems.append(i)
+    return newItems
 #FilterSeenItemsBySize(idFilter, items)
 def FilterSeenItemsBySize(sizeFilter, items):# ~ Use size in metres
     newItems = []
     for i in items:
-        if i.size/1000 == sizeFilter:
+        if i.size / 1000 == sizeFilter:
             newItems.append(i)
     return newItems
 #FilterSeenItemsByDistance(distanceFilter, items) ~ IMPORTANT distance is measured in milimeters. To get it in metres, divide by 1000
@@ -126,9 +140,54 @@ def CompetitionFilter():
     #items = FilterSeenItemsBySize(0.061, items)
     #items = FilterSeenItemsByDistance(5, items)
     return items
+#GetHomeMarkers()
+def GetHomeMarkers():
+    PivotRobot(0, 0.3, 0, 2)
+    MoveRobotInGoodTime(1, -0.5)
+    items = []
+    while len(items) == 0:
+        R.sleep(0.00001)
+        items = FilterSeenItemsByIDRange([0, len(allWallMarkers)], GetTheCameraItems())
+        RemarkAboutSeenMarkers(items)
+    return WorkOutHomeMarkers(items[0])
+
+#WorkOutHomeMarkers(marker)
+def WorkOutHomeMarkers(marker):
+    maxMarker = marker.id + 1
+    minMarker = maxMarker - 7
+    if minMarker < 0:
+        minMarker = 24
+    homeMarkers = []
+    if minMarker == 24:
+        homeMarkers = [24,25,26,27,0,1,2,3]
+    else:
+        for i in range(minMarker, maxMarker + 1):
+            homeMarkers.append(i)
+    print(homeMarkers)
+    return homeMarkers
+
+#MarkerWithinHomeMarkers(marker)
+def MarkerWithinHomeMarkers(markerId):
+    if markerId in homeMarkers: return True
+    else: return False
+
+#PinpointSingleMarker():
+def PinpointSingleClosestMarker(inMarkers):
+    return SortMarkersByCloseness(GetMarkerAndDistance(inMarkers))[0]
+
+#LoadInAllWallMarkers()
+def LoadInAllWallMarkers():
+    allWallMarkers = []
+    for i in range(0, 28):
+        allWallMarkers.append(i)
+    return allWallMarkers
 
 ##Raw code ~ No subs, put them elsewhere
 pins = [A0, A1, A2, A3, A4, A5]
-PivotRobot(0, 0.5, 0, 3)
-PivotRobot(1, 0.5, 0, 3)
-##MoveAboutTheArena()
+#allWallMarkers = LoadInAllWallMarkers()
+#homeMarkers = GetHomeMarkers()
+#print("TIME TO START")
+#MoveAboutTheArena()
+print(PinpointSingleClosestMarker(GetTheCameraItems()))
+
+###YOU WERE TRYING TO FIND THE HOME MARKERS###
