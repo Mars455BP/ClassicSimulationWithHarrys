@@ -6,24 +6,23 @@ currentX = 0
 currentY = 0
 targetCoordinatesMatrix = [[-0.8, -1, -1.1, -1.55, -1.815, -2.525, -2.525], [12,15,8,6]]
 
-#Starts from wall marker 14
-#wallMarkerCoordinatesMatrix
-14: Vec3(-2.154, 2.8749, 0.175),
-15: Vec3(-1.436, 2.8749, 0.175),
-16: Vec3(-0.718, 2.8749, 0.175),
-17: Vec3(0, 2.8749, 0.175),
-18: Vec3(0.718, 2.8749, 0.175),
-19: Vec3(1.436, 2.8749, 0.175),
-20: Vec3(2.154, 2.8749, 0.175),
-21: Vec3(2.8749, 2.154, 0.175),
-22: Vec3(2.8749, 1.436, 0.175),
-23: Vec3(2.8749, 0.718, 0.175),
-24: Vec3(2.8749, 0, 0.175),
-25: Vec3(2.8749, -0.718, 0.175),
-26: Vec3(2.8749, -1.436, 0.175),
-27: Vec3(2.8749, -2.154, 0.175)
+def PrintTargetCoordinates():
+    global targetCoordinatesMatrix
+    i = 0
+    while i < 8:
+        print("x = ", targetCoordinatesMatrix[0][i], "   y = ", targetCoordinatesMatrix[1][i])
+        i += 1
 
-def GetStartPosition(zone)
+def MatrixMultiply(A, B):
+    i = 0
+    result = [ [0]*8 for i in range(2)]
+    while i < 8:
+        result[0][i] = A[0][0] * B[0][i] + A[0][1] * B[1][i]
+        result[1][i] = A[1][0] * B[0][i] + A[1][1] * B[1][i]
+        i += 1
+    return result
+
+def GetStartPosition(zone):  
     match zone:
         case 0:
             currentX = 0.5
@@ -38,15 +37,25 @@ def GetStartPosition(zone)
             currentX = 2.375
             currentY = 0.5
             
-def CalculateTargetCoordinates(zone)
-    
+def CalculateTargetCoordinates(zone):
+    global targetCoordinatesMatrix
+    rotateCount = zone
+    result = targetCoordinatesMatrix
+    while rotateCount > 0:
+        result = MatrixMultiply(rotationMatrix, result)
+        rotateCount -= 1
+    targetCoordinatesMatrix = result
 
-def FindCurrentPosition()
+def FindCurrentPosition():
+    x = None
     #Probably spin and figure it out
 
-def GoToCoordinate(x, y)
+def GoToCoordinate(x, y):
+    x = None
     #Go there
     
 homeZone = R.zone
+homeZone = 1 #Change this (or delete) to test different zones
 GetStartPosition(homeZone)
 CalculateTargetCoordinates(homeZone)
+PrintTargetCoordinates()
