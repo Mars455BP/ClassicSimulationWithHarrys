@@ -36,14 +36,26 @@ def AdjustFinger(finger, adjustment):
     R.servo_board.servos[finger].position = adjustment
 
 
+#Bronze
+#RotateRobotLeft()
+#R.sleep(0.49)
+
+#Silver
+#RotateRobotRight()
+#R.sleep(0.5)
+
+#Gold
 RotateRobotLeft()
-R.sleep(0.49)
+R.sleep(0.01)
+
+
 Move(0)
 Move(1)
-R.sleep(0.7)
+R.sleep(1.5)
 Move(0)
 AdjustBothClaws(1)
+#AdjustClaw(1,-1)
+AdjustBothFingers(1)
 
-#AdjustBothFingers(1)
 
 
