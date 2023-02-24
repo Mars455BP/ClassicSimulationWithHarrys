@@ -1,7 +1,102 @@
-from sr.robot3 import *
+﻿from sr.robot3 import *
+from math import cos, sqrt, acos, asin, sin, pi
 
 global pins, homeMarkers, allWallMarkers
+
 R = Robot()
+
+class Vec3:
+    # x: float
+    # y: float
+    # z: float
+
+    def __init__(self, x: float, y: float, z: float):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def add(self, other):
+        return Vec3(self.x + other.x, self.y + other.y, self.z + other.z)
+
+    def sub(self, other):
+        return Vec3(self.x - other.x, self.y - other.y, self.z - other.z)
+
+    def mul(self, other):
+        return Vec3(self.x * other.x, self.y * other.y, self.z * other.z)
+
+    def smul(self, other: float):
+        return Vec3(self.x * other, self.y * other, self.z * other)
+
+    def dot(self, other):
+        return self.x * other.x + self.y * other.y + self.z * other.z
+
+    def length(self):
+        return sqrt(self.dot(self))
+
+    def normalise(self):
+        return self.smul(1.0 / self.length())
+
+    def cross(self, other):
+        # cx = aybz − azby
+        # cy = azbx − axbz
+        # cz = axby − aybx
+        return Vec3(
+            self.y * other.z - self.z * other.y,
+            self.z * other.x - self.x * other.z,
+            self.x * other.y - self.y * other.x
+        )
+def Clamp(min, max, t):
+    if t < min: return min
+    if t > max: return max
+    return t
+class Vision:
+    UP: Vec3 = Vec3(0.0, 0.0, 1.0)
+    ORIGIN: Vec3 = Vec3(0.0, 0.0, 0.0)
+
+    # Assumes use of the bpv.maths library
+    # marker0/1 must be a Marker object e.g one in the list returned by Robot.camera.see
+    # marker_world_positions must be indexable by an int and when indexed return a Vec3
+    @staticmethod
+    def robot_position(marker0, marker1, marker_world_positions):
+        # distances to markers taking into account camera angle
+        # marker0_distance = marker0.distance * cos(Vision.camera_angle)
+        # marker1_distance = marker1.distance * cos(Vision.camera_angle)
+        marker0_distance = marker0.distance
+        marker1_distance = marker1.distance
+
+        # marker world positions
+        marker0_position = marker_world_positions[marker0.id]
+        marker1_position = marker_world_positions[marker1.id]
+
+        # vector between the markers
+        inter_marker = marker1_position.sub(marker0_position)
+        inter_marker_distance = inter_marker.length()
+
+        # angle between the vectors to t
+        theta = acos(
+            Clamp(-1, 1,
+            ((inter_marker_distance ** 2) - (marker0_distance ** 2) - (marker1_distance ** 2)) 
+            / (-2 * marker0_distance * marker1_distance)
+            )
+        )
+
+        # angle between (vector from marker0 to marker1) and (vector from marker0 to camera)
+        alpha = asin((marker1_distance * sin(theta)) / inter_marker_distance)
+
+        epsilon = marker0_distance * cos(alpha)
+        psi = marker0_distance * sin(alpha)
+
+        omega = marker0_position.add(inter_marker.smul(1 / inter_marker_distance).smul(epsilon))
+        wall_normal = inter_marker.cross(Vision.UP).normalise()
+
+        if wall_normal.dot(Vision.ORIGIN.sub(omega).normalise()) < 0:
+            wall_normal = wall_normal.smul(-1.0)
+
+        print("hhh", wall_normal.x, wall_normal.y, wall_normal.z)
+
+        robot_position = omega.add(wall_normal.smul(psi))
+
+        return robot_position
 
 ##Moving Robots##
 #MoveRobot(direction)
@@ -140,31 +235,6 @@ def CompetitionFilter():
     #items = FilterSeenItemsBySize(0.061, items)
     #items = FilterSeenItemsByDistance(5, items)
     return items
-#GetHomeMarkers()
-def GetHomeMarkers():
-    PivotRobot(0, 0.3, 0, 2)
-    MoveRobotInGoodTime(1, -0.5)
-    items = []
-    while len(items) == 0:
-        R.sleep(0.00001)
-        items = FilterSeenItemsByIDRange([0, len(allWallMarkers)], GetTheCameraItems())
-        RemarkAboutSeenMarkers(items)
-    return WorkOutHomeMarkers(items[0])
-
-#WorkOutHomeMarkers(marker)
-def WorkOutHomeMarkers(marker):
-    maxMarker = marker.id + 1
-    minMarker = maxMarker - 7
-    if minMarker < 0:
-        minMarker = 24
-    homeMarkers = []
-    if minMarker == 24:
-        homeMarkers = [24,25,26,27,0,1,2,3]
-    else:
-        for i in range(minMarker, maxMarker + 1):
-            homeMarkers.append(i)
-    print(homeMarkers)
-    return homeMarkers
 
 #MarkerWithinHomeMarkers(marker)
 def MarkerWithinHomeMarkers(markerId):
@@ -177,17 +247,68 @@ def PinpointSingleClosestMarker(inMarkers):
 
 #LoadInAllWallMarkers()
 def LoadInAllWallMarkers():
-    allWallMarkers = []
-    for i in range(0, 28):
-        allWallMarkers.append(i)
+    allWallMarkers = {
+        0: Vec3(2.154, -2.8749,0.175),
+        1: Vec3(1.436, -2.8749,0.175),
+        2: Vec3(0.718, -2.8749, 0.175),
+        3: Vec3(0.0,-2.8749,0.175),
+        4: Vec3(-0.718,-2.8749,0.175),
+        5: Vec3(-1.436,-2.8749,0.175),
+        6: Vec3(-2.154,-2.8749,0.175),
+        7: Vec3(-2.8749,-2.154,0.175),
+        8: Vec3(-2.8749,-1.436,0.175),
+        9: Vec3(-2.8749,-0.718,0.175),
+        10: Vec3(-2.8749,0,0.175),
+        11: Vec3(-2.8749,0.718,0.175),
+        12: Vec3(-2.8749,1.436,0.175),
+        13: Vec3(-2.8749,2.154,0.175),
+        14: Vec3(-2.154, 2.8749, 0.175),
+        15: Vec3(-1.436, 2.8749, 0.175),
+        16: Vec3(-0.718, 2.8749, 0.175),
+        17: Vec3(0, 2.8749, 0.175),
+        18: Vec3(0.718, 2.8749, 0.175),
+        19: Vec3(1.436, 2.8749, 0.175),
+        20: Vec3(2.154, 2.8749, 0.175),
+        21: Vec3(2.8749, 2.154, 0.175),
+        22: Vec3(2.8749, 1.436, 0.175),
+        23: Vec3(2.8749, 0.718, 0.175),
+        24: Vec3(2.8749, 0, 0.175),
+        25: Vec3(2.8749, -0.718, 0.175),
+        26: Vec3(2.8749, -1.436, 0.175),
+        27: Vec3(2.8749, -2.154, 0.175)}
     return allWallMarkers
+
+#GetHomeMarkers()
+def GetHomeMarkers(zone : int):
+    if zone == 0:
+        return [0, 1, 2, 3, 24, 25, 25, 27]
+    elif zone == 1:
+        return [3, 4, 5, 6, 7, 8, 9, 10]
+    elif zone == 2:
+        return [10, 11, 12, 13, 14, 15, 16, 17]
+    else:
+        return [17, 18, 19, 20, 21, 22, 23, 24]
+
+#GetLocationOfRobot()
+def GetLocationOfRobot(marker1, marker2):
+    return Vision.robot_position(marker1, marker2, allWallMarkers)
+
+def RotateRobotLeft(): #rotates robot left in an anti-clockwise direction
+    R.motor_board.motors[0].power = 0
+    R.motor_board.motors[1].power = 0.5
 
 ##Raw code ~ No subs, put them elsewhere
 pins = [A0, A1, A2, A3, A4, A5]
-#allWallMarkers = LoadInAllWallMarkers()
-#homeMarkers = GetHomeMarkers()
+allWallMarkers = LoadInAllWallMarkers()
+homeMarkers = GetHomeMarkers(R.zone)
+print(allWallMarkers)
+print(homeMarkers)
 #print("TIME TO START")
 #MoveAboutTheArena()
-print(PinpointSingleClosestMarker(GetTheCameraItems()))
+RotateRobotLeft()
+R.sleep(0.5)
+MoveRobot(0)
+thing = GetLocationOfRobot(FilterSeenItemsByIDRange([0, 27], R.camera.see())[0], FilterSeenItemsByIDRange([0, 27], R.camera.see())[1])
+print(thing.x, thing.y)
 
 ###YOU WERE TRYING TO FIND THE HOME MARKERS###
