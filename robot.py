@@ -183,7 +183,7 @@ def RotateUntilWallSeen():
         markers = R.camera.see()
         R.motor_board.motors[1].power = 0
         for m in markers:
-            if m.id != 99:
+            if m.id != 73:
                 wallCount += 1
         print("Wall marker count = ", wallCount)
         if wallCount >= 1:
