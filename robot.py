@@ -1,3 +1,4 @@
+import time
 from sr.robot3 import *
 from math import cos, sqrt, acos, asin, sin, pi
 
@@ -79,26 +80,7 @@ class Vision:
         
         robot_position = Vec3(x, y, 0)
         return robot_position
-
-    def CalculatePosition(wallMarkers, markerPositions):
-        print("id:",wallMarkers.id)
-        print("x relative:", wallMarkers.cartesian.x / 1000)
-        print("y relative:", wallMarkers.cartesian.y / 1000)
     
-        if wallMarkers.id >= 0 and wallMarkers.id < 7:
-            x = markerPositions[wallMarkers.id].x + wallMarkers.cartesian.x / 1000
-            y = markerPositions[wallMarkers.id].y - wallMarkers.cartesian.y / 1000
-        if wallMarkers.id >= 7 and wallMarkers.id < 14:
-            x = markerPositions[wallMarkers.id].x - wallMarkers.cartesian.y / 1000
-            y = markerPositions[wallMarkers.id].y + wallMarkers.cartesian.x / 1000
-        if wallMarkers.id >= 14 and wallMarkers.id < 21:
-            x = markerPositions[wallMarkers.id].x - wallMarkers.cartesian.x / 1000
-            y = markerPositions[wallMarkers.id].y + wallMarkers.cartesian.y / 1000
-        if wallMarkers.id >= 21:
-            x = markerPositions[wallMarkers.id].x + wallMarkers.cartesian.y / 1000
-            y = markerPositions[wallMarkers.id].y - wallMarkers.cartesian.x / 1000
-        return Vec3(x, y, 0)
-
 
 sleepTime = 0.01
 currentX = 0
@@ -195,9 +177,9 @@ def FilterSeenItemsByIDRange(rangeOfMarkers, items):
 def RotateUntilWallSeen():
     while True:
         wallCount = 0
-        R.sleep(sleepTime)
+        time.sleep(sleepTime)
         R.motor_board.motors[1].power = 0.3
-        R.sleep(sleepTime)
+        time.sleep(sleepTime)
         markers = R.camera.see()
         R.motor_board.motors[1].power = 0
         for m in markers:
@@ -220,27 +202,12 @@ position = Vision.CalculateRobotPosition(FilterSeenItemsByIDRange([0, 27], marke
 print("x = ", position.x, "   y = ", position.y)
 R.motor_board.motors[0].power = 0.3
 R.motor_board.motors[1].power = 0.3
-R.sleep(2)
+time.sleep(2)
 R.motor_board.motors[0].power = 0
 R.motor_board.motors[1].power = 0
-R.sleep(0.2)
+time.sleep(0.2)
 markers = RotateUntilWallSeen()
 R.motor_board.motors[0].power = 0
 R.motor_board.motors[1].power = 0
 position = Vision.CalculateRobotPosition(FilterSeenItemsByIDRange([0, 27], markers)[0], allWallMarkers)
-print("x = ", position.x, "   y = ", position.y)
-R.sleep(99)
-
-position = Vision.CalculatePosition(FilterSeenItemsByIDRange([0, 27], markers)[0], allWallMarkers)
-print("x = ", position.x, "   y = ", position.y)
-R.motor_board.motors[0].power = 0.3
-R.motor_board.motors[1].power = 0.3
-R.sleep(2)
-R.motor_board.motors[0].power = 0
-R.motor_board.motors[1].power = 0
-R.sleep(0.2)
-markers = RotateUntilWallSeen()
-R.motor_board.motors[0].power = 0
-R.motor_board.motors[1].power = 0
-position = Vision.CalculatePosition(FilterSeenItemsByIDRange([0, 27], markers)[0], allWallMarkers)
 print("x = ", position.x, "   y = ", position.y)
